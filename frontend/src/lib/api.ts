@@ -57,7 +57,7 @@ export const getCurrentUserQueryFn = async () => {
     return data.data;
 };
 
-export const googleAuthUrl = () => `${API_BASE_URL}/auth/google`;
+export const githubAuthUrl = () => `${API_BASE_URL}/auth/github`;
 
 /* ------------------------------ invitations ------------------------------- */
 

@@ -13,14 +13,22 @@ passport.use(
             secretOrKey: process.env.JWT_SECRET,
             algorithms: ["HS256"],
         },
+
         async (payload, done) => {
             try {
+                console.info("[JWT DEBUG]", {
+                    database: User.db.name,
+                    model: User.modelName,
+                    subjectType: typeof payload.sub,
+                    validObjectId: /^[a-f\d]{24}$/i.test(String(payload.sub)),
+                });
                 const user = await User.findById(payload.sub);
 
                 if (!user) return done(null, false);
 
                 return done(null, toAuthUser(user));
             } catch (error) {
+                console.error("[JWT DEBUG] User lookup failed:", error.message);
                 return done(error, false);
             }
         },
@@ -35,49 +43,64 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
                 clientSecret: process.env.GITHUB_CLIENT_SECRET,
                 callbackURL: process.env.GITHUB_CALLBACK_URL,
             },
-            async (_accessToken, _refreshToken, profile, done) => {
-                try {
-                    const emails = profile.emails ?? [];
-                    const chosen =
-                        emails.find((e) => e.primary && e.verified) ??
-                        emails.find((e) => e.verified);
 
-                    const email = chosen?.value?.trim().toLowerCase();
+            async (accessToken, _refreshToken, profile, done) => {
+                try {
+                    // Fetch verified email addresses directly from GitHub.
+                    const emailResponse = await fetch(
+                        "https://api.github.com/user/emails",
+                        {
+                            headers: {
+                                Authorization: `Bearer ${accessToken}`,
+                                Accept: "application/vnd.github+json",
+                                "X-GitHub-Api-Version": "2022-11-28",
+                            },
+                        },
+                    );
+
+                    if (!emailResponse.ok) {
+                        throw new Error(
+                            `GitHub email API failed with status ${emailResponse.status}`,
+                        );
+                    }
+
+                    const emails = await emailResponse.json();
+
+                    const chosen =
+                        emails.find(
+                            (email) => email.primary && email.verified,
+                        ) ?? emails.find((email) => email.verified);
+
+                    const email = chosen?.email?.trim().toLowerCase();
 
                     if (!email) {
                         return done(
                             new Error(
-                                "No Email Found On GitHub Account. Make Your Email Accessible And Try Again..",
+                                "No verified email found on GitHub. Verify an email on GitHub and try again.",
                             ),
                         );
                     }
 
+                    // Find an account already linked to this GitHub identity.
                     const existingByGitHubId = await User.findOne({
                         githubId: profile.id,
                     });
 
                     if (existingByGitHubId) {
-                        if (!existingByGitHubId.emailVerifiedAt) {
-                            existingByGitHubId.emailVerifiedAt = new Date();
-                            await existingByGitHubId.save();
-                        }
-
                         return done(null, toAuthUser(existingByGitHubId));
                     }
 
+                    // Link an existing account only through a verified email.
                     const existingByEmail = await User.findOne({ email });
 
                     if (existingByEmail) {
-                        if (!existingByEmail.emailVerifiedAt) {
-                            existingByEmail.set("password", undefined);
-                        }
                         if (
                             existingByEmail.githubId &&
                             existingByEmail.githubId !== profile.id
                         ) {
                             return done(
                                 new Error(
-                                    "This Email Is Already Linked To Another GitHub Account.",
+                                    "This email is already linked to another GitHub account.",
                                 ),
                             );
                         }
@@ -90,6 +113,7 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
                         return done(null, toAuthUser(existingByEmail));
                     }
 
+                    // Create a new MongoDB user on first successful GitHub login.
                     const user = await User.create({
                         name: profile.displayName || profile.username || email,
                         email,

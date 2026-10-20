@@ -40,12 +40,10 @@ export const liveblocksAuthHandler = asyncHandler(async (request, response) => {
               });
 
     if (!hasAccess) {
-        return response
-            .status(HTTPSTATUS.FORBIDDEN)
-            .json({
-                error: "forbidden",
-                reason: "You Do Not Have Access To This Board",
-            });
+        return response.status(HTTPSTATUS.FORBIDDEN).json({
+            error: "forbidden",
+            reason: "You Do Not Have Access To This Board",
+        });
     }
 
     const teamMemberships = await TeamMembership.find({
