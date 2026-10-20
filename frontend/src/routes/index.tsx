@@ -13,6 +13,7 @@ import { DashboardHomePage } from "@/pages/dashboard/dashboard-home";
 import { AppLayout } from "@/components/layouts/app-layout";
 import { TeamPage } from "@/pages/dashboard/team";
 import { TeamDetailPage } from "@/pages/dashboard/team-detail";
+import { WorkspaceMembersPage } from "@/pages/dashboard/settings/members";
 
 export const router = createBrowserRouter([
     { path: "/", element: <LandingPage /> },
@@ -38,6 +39,10 @@ export const router = createBrowserRouter([
                     { index: true, element: <DashboardHomePage /> },
                     { path: "team", element: <TeamPage /> },
                     { path: "teams/:teamId", element: <TeamDetailPage /> },
+                    {
+                        path: "settings/members",
+                        element: <WorkspaceMembersPage />,
+                    },
                 ],
             },
         ],
