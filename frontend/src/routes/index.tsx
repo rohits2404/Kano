@@ -9,6 +9,8 @@ import CreateWorkspacePage from "@/pages/onboarding/create-workspace";
 import { DashboardHomeRedirect } from "./home-redirect";
 import InviteTeamPage from "@/pages/onboarding/invite-team";
 import WorkspaceReadyPage from "@/pages/onboarding/workspace-ready";
+import { DashboardHomePage } from "@/pages/dashboard/dashboard-home";
+import { AppLayout } from "@/components/layouts/app-layout";
 
 export const router = createBrowserRouter([
     { path: "/", element: <LandingPage /> },
@@ -27,6 +29,11 @@ export const router = createBrowserRouter([
             { path: "/onboarding/invite", element: <InviteTeamPage /> },
             { path: "/onboarding/ready", element: <WorkspaceReadyPage /> },
             { path: "/dashboard", element: <DashboardHomeRedirect /> },
+            {
+                path: "/dashboard/org/:workspaceId",
+                element: <AppLayout />,
+                children: [{ index: true, element: <DashboardHomePage /> }],
+            },
         ],
     },
 ]);
