@@ -11,6 +11,8 @@ import InviteTeamPage from "@/pages/onboarding/invite-team";
 import WorkspaceReadyPage from "@/pages/onboarding/workspace-ready";
 import { DashboardHomePage } from "@/pages/dashboard/dashboard-home";
 import { AppLayout } from "@/components/layouts/app-layout";
+import { TeamPage } from "@/pages/dashboard/team";
+import { TeamDetailPage } from "@/pages/dashboard/team-detail";
 
 export const router = createBrowserRouter([
     { path: "/", element: <LandingPage /> },
@@ -32,7 +34,11 @@ export const router = createBrowserRouter([
             {
                 path: "/dashboard/org/:workspaceId",
                 element: <AppLayout />,
-                children: [{ index: true, element: <DashboardHomePage /> }],
+                children: [
+                    { index: true, element: <DashboardHomePage /> },
+                    { path: "team", element: <TeamPage /> },
+                    { path: "teams/:teamId", element: <TeamDetailPage /> },
+                ],
             },
         ],
     },
