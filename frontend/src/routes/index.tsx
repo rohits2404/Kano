@@ -1,6 +1,6 @@
 import InvitePage from "@/pages/invite/invite-page";
 import LandingPage from "@/pages/landing/landing-page";
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, Navigate } from "react-router";
 import { PublicRoute } from "./public-route";
 import SignInPage from "@/pages/auth/sign-in";
 import SignUpPage from "@/pages/auth/sign-up";
@@ -14,6 +14,7 @@ import { AppLayout } from "@/components/layouts/app-layout";
 import { TeamPage } from "@/pages/dashboard/team";
 import { TeamDetailPage } from "@/pages/dashboard/team-detail";
 import { WorkspaceMembersPage } from "@/pages/dashboard/settings/members";
+import { BoardPage } from "@/pages/board/board-page";
 
 export const router = createBrowserRouter([
     { path: "/", element: <LandingPage /> },
@@ -45,6 +46,8 @@ export const router = createBrowserRouter([
                     },
                 ],
             },
+            { path: "/boards/:boardId", element: <BoardPage /> },
         ],
     },
+    { path: "*", element: <Navigate to="/dashboard" replace /> },
 ]);
